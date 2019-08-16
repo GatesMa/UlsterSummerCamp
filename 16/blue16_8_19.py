@@ -6,15 +6,21 @@ import datetime
 
 SENSORTAG_ADDRESS = "54:6C:0E:53:1E:3D"
 
+print('Connecting to {}'.format(SENSORTAG_ADDRESS))
+tag = SensorTag(SENSORTAG_ADDRESS)
 
 def enable_sensors(tag):
     tag.IRtemperature.enable()
+    tag.barometer.enable()
     tag.lightmeter.enable()
+    tag.gyroscope.enable()
     time.sleep(1.0)
 
 def disable_sensors(tag):
     tag.IRtemperature.disable()
+    tag.barometer.disable()
     tag.lightmeter.disable()
+    tag.gyroscope.disable()
 
 def get_readings(tag):
     try:
@@ -23,7 +29,8 @@ def get_readings(tag):
 
         readings["ir_temp_amb"], readings["ir_temp_obj"] = tag.IRtemperature.read()
         readings["baro_temp"], readings["pressure"] = tag.barometer.read()
-
+        readings["light"] = tag.lightmeter.read()
+        readings["gyro_x"], readings["gyro_y"], readings["gyro_z"] = tag.gyroscope.read()
         readings = {key: round(value, 2) for key, value in readings.items()}
         return readings
     except BTLEException as e:
@@ -37,10 +44,8 @@ def reconnect(tag):
         print("Unable to reconnect to SensorTag.")
         raise e
     
-print('Connecting to {}'.format(SENSORTAG_ADDRESS))
-tag = SensorTag(SENSORTAG_ADDRESS)
 
-#disable_sensors(tag)
+
 
 while True:
     readings = get_readings(tag)
@@ -49,7 +54,8 @@ while True:
         reconnect(tag)
         continue
     print("Time:\t{}".format(datetime.datetime.now()))
-    print("Temperature:", readings["ir_temp_obj"])
-    print("Pressure: ", readings["pressure"])
+    print("Temperature:\t", readings["ir_temp_obj"])
+    print("Pressure: \t", readings["pressure"])
+    print("Lightmeter:\t", readings["light"])
+    print("Gryoscope(X, Y, Z):\t", readings["gyro_x"], readings["gyro_y"], readings["gyro_z"])
     print('--------------------------------------')
-
